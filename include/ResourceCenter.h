@@ -2,24 +2,28 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+using namespace std;
 
 class ResourceCenter {
 public:
-    ResourceCenter(int id, std::string name) : id_(id), name_(name) {}
+    ResourceCenter(int id, string name) {
+        centerId = id;
+        centerName = name;
+    }
 
-    int id() const { return id_; }
-    const std::string& name() const { return name_; }
+    int id() const { return centerId; }
+    const string& name() const { return centerName; }
 
     void addStock(int resourceId, int quantity) {
         if (quantity < 0) {
-            throw std::invalid_argument("Stock cannot be negative.");
+            throw invalid_argument("Stock cannot be negative.");
         }
-        stock_[resourceId] += quantity;
+        stock[resourceId] += quantity;
     }
 
     int availableStock(int resourceId) const {
-        auto it = stock_.find(resourceId);
-        if (it == stock_.end()) {
+        auto it = stock.find(resourceId);
+        if (it == stock.end()) {
             return 0;
         }
         return it->second;
@@ -29,8 +33,8 @@ public:
     bool removeStock(int resourceId, int quantity) {
         if (quantity < 0) return false;
 
-        auto it = stock_.find(resourceId);
-        if (it == stock_.end() || it->second < quantity) {
+        auto it = stock.find(resourceId);
+        if (it == stock.end() || it->second < quantity) {
             return false;
         }
         it->second -= quantity;
@@ -38,7 +42,7 @@ public:
     }
 
 private:
-    int id_;
-    std::string name_;
-    std::unordered_map<int, int> stock_;
+    int centerId;
+    string centerName;
+    unordered_map<int, int> stock;   // resource id -> how much we have
 };

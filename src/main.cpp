@@ -15,11 +15,11 @@ int main() {
         {3, "East Village", 3, 800, 700}
     };
 
-    // starter weights, the team should review these
+    // starter weights, we should decide these as a team
     const PriorityManager manager({0.50, 0.25, 0.25});
 
     try {
-        auto ranked = manager.rankZones(zones);
+        vector<RankedZone> ranked = manager.rankZones(zones);
 
         cout << "Disaster Relief Resource Allocation and Routing System\n";
         cout << "Priority ranking (higher score = higher priority)\n\n";
@@ -33,7 +33,7 @@ int main() {
                  << " | score: " << ranked[i].score << '\n';
         }
 
-        // quick test of the resource center
+        // just checking the resource center works
         ResourceCenter warehouse(1, "Central Warehouse");
         warehouse.addStock(101, 100);
         cout << "\nWarehouse: " << warehouse.name()

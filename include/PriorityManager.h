@@ -1,6 +1,7 @@
 #pragma once
 #include "DisasterZone.h"
 #include <vector>
+using namespace std;
 
 struct PriorityWeights {
     double severity = 0.50;
@@ -17,14 +18,14 @@ struct RankedZone {
 
 class PriorityManager {
 public:
-    explicit PriorityManager(PriorityWeights weights = {});
+    PriorityManager(PriorityWeights weights = PriorityWeights());
 
     double calculateScore(const DisasterZone& zone,
                           int maxAffectedPopulation,
                           int maxUnmetDemand) const;
 
-    std::vector<RankedZone> rankZones(const std::vector<DisasterZone>& zones) const;
+    vector<RankedZone> rankZones(const vector<DisasterZone>& zones) const;
 
 private:
-    PriorityWeights weights_;
+    PriorityWeights weights;
 };
