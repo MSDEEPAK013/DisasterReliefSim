@@ -6,13 +6,15 @@ using namespace std;
 
 class ResourceCenter {
 public:
-    ResourceCenter(int id, string name) {
+    ResourceCenter(int id, string name, int nodeId =  -1) {
         centerId = id;
         centerName = name;
+        centerNode = nodeId;
     }
 
     int id() const { return centerId; }
     const string& name() const { return centerName; }
+    int node() const { return centerNode; }
 
     void addStock(int resourceId, int quantity) {
         if (quantity < 0) {
@@ -45,4 +47,5 @@ private:
     int centerId;
     string centerName;
     unordered_map<int, int> stock;   // resource id -> how much we have
+    int centerNode;
 };

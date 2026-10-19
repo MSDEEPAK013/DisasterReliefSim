@@ -8,6 +8,7 @@ struct DisasterZone {
     int severity = 0;            // 1 (low) to 5 (critical)
     int affectedPopulation = 0;
     int unmetDemand = 0;
+    int nodeId = -1;
 
     bool isValid() const {
         if (id < 0) return false;
