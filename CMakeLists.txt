@@ -9,7 +9,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(disaster_relief
     src/main.cpp
     src/PriorityManager.cpp
+    src/ReliefManager.cpp
 )
+
+
 
 target_include_directories(disaster_relief PRIVATE include)
 

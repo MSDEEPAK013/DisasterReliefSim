@@ -1,6 +1,9 @@
 #include "DisasterZone.h"
 #include "PriorityManager.h"
 #include "ResourceCenter.h"
+#include "ReliefManager.h"
+#include "Vehicle.h"
+#include "Resource.h"
 #include <exception>
 #include <iomanip>
 #include <iostream>
@@ -42,6 +45,12 @@ int main() {
         cerr << "Error: " << error.what() << '\n';
         return 1;
     }
+
+
+    Vehicle truck(1, 50, 0);
+    Resource water(101, "Water", "litres");
+    cout << "Vehicle " << truck.id() << " capacity " << truck.capacity()
+         << " | Resource: " << water.name() << endl;
 
     return 0;
 }
