@@ -10,6 +10,7 @@ add_executable(disaster_relief
     src/main.cpp
     src/PriorityManager.cpp
     src/ReliefManager.cpp
+    src/Graph.cpp
 )
 
 
@@ -29,5 +30,17 @@ if(BUILD_TESTING)
     add_test(
         NAME PriorityManagerTests
         COMMAND priority_manager_tests
+    )
+
+    add_executable(graph_tests
+        tests/GraphTests.cpp
+        src/Graph.cpp
+    )
+
+    target_include_directories(graph_tests PRIVATE include)
+
+    add_test(
+        NAME GraphTests
+        COMMAND graph_tests
     )
 endif()
