@@ -52,6 +52,24 @@ bool ReliefManager::hasUnmetDemand() const {
     return false;
 }
 
+
+void ReliefManager::addRoad(int from, int to, double cost) {
+    graph.addRoad(from, to, cost);
+}
+
+void ReliefManager::setRoadBlocked(int from, int to, bool blocked) {
+    graph.setRoadBlocked(from, to, blocked);
+}
+
+double ReliefManager::shortestDistance(int from, int to) const {
+    return graph.shortestDistance(from, to);
+}
+
+std::vector<int> ReliefManager::shortestPath(int from, int to) const {
+    return graph.shortestPath(from, to);
+}
+
+
 bool ReliefManager::runStep(){
 
      // Only zones that still need help take part in this step.

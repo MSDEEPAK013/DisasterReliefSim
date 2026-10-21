@@ -43,4 +43,20 @@ if(BUILD_TESTING)
         NAME GraphTests
         COMMAND graph_tests
     )
+
+    
+    add_executable(relief_manager_tests
+        tests/ReliefManagerTests.cpp
+        src/ReliefManager.cpp
+        src/PriorityManager.cpp
+        src/Graph.cpp
+    )
+
+    target_include_directories(relief_manager_tests PRIVATE include)
+
+    add_test(
+        NAME ReliefManagerTests
+        COMMAND relief_manager_tests
+    )
+
 endif()
