@@ -2,6 +2,8 @@
 #include "PriorityManager.h"
 #include "ResourceCenter.h"
 #include "ReliefManager.h"
+#include "Simulation.h"
+#include "ScenarioBuilder.h"
 #include "Vehicle.h"
 #include "Resource.h"
 #include <exception>
@@ -52,5 +54,12 @@ int main() {
     cout << "Vehicle " << truck.id() << " capacity " << truck.capacity()
          << " | Resource: " << water.name() << endl;
 
+        cout << "\n--- Scenario test ---\n";
+    ReliefManager relief;
+    ScenarioBuilder::random(relief, 42, 5, 2, 3);
+    Simulation sim(relief);
+    sim.run(1);
+
     return 0;
+
 }
