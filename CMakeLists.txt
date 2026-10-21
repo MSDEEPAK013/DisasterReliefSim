@@ -10,6 +10,12 @@ add_executable(disaster_relief
     src/main.cpp
     src/PriorityManager.cpp
     src/ReliefManager.cpp
+<<<<<<< Updated upstream
+=======
+    src/Graph.cpp
+    src/Simulation.cpp
+    src/ScenarioBuilder.cpp
+>>>>>>> Stashed changes
 )
 
 
@@ -23,6 +29,16 @@ if(BUILD_TESTING)
         tests/PriorityManagerTests.cpp
         src/PriorityManager.cpp
     )
+
+    add_executable(relief_manager_tests
+        tests/ReliefManagerTests.cpp
+        src/ReliefManager.cpp
+        src/PriorityManager.cpp
+        src/Simulation.cpp
+        src/ScenarioBuilder.cpp
+    )
+    target_include_directories(relief_manager_tests PRIVATE include)
+    add_test(NAME ReliefManagerTests COMMAND relief_manager_tests)
 
     target_include_directories(priority_manager_tests PRIVATE include)
 
