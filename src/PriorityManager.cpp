@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
+#include <utility>
 using namespace std;
 
 bool PriorityWeights::areValid() const {
@@ -49,13 +50,44 @@ double PriorityManager::calculateScore(const DisasterZone& zone,
            weights.unmetDemand * demand;
 }
 
-// for sort: higher score first, smaller id first if the scores are the same
-bool higherPriority(const RankedZone& a, const RankedZone& b) {
+// higher score first, smaller id first if the scores are the same
+static bool higherPriority(const RankedZone& a, const RankedZone& b) {
     if (a.score != b.score) return a.score > b.score;
     return a.zone.id < b.zone.id;
 }
 
-vector<RankedZone> PriorityManager::rankZones(const vector<DisasterZone>& zones) const {
+bool ZoneQueue::LowerPriority::operator()(const RankedZone& a,
+                                          const RankedZone& b) const {
+    // a sits below b in the heap exactly when b has higher priority
+    return higherPriority(b, a);
+}
+
+ZoneQueue::ZoneQueue(const vector<RankedZone>& scored)
+    : heap(LowerPriority(), scored) {}   // O(n) build-heap
+
+bool ZoneQueue::empty() const { return heap.empty(); }
+
+size_t ZoneQueue::size() const { return heap.size(); }
+
+void ZoneQueue::push(const RankedZone& zone) { heap.push(zone); }
+
+const RankedZone& ZoneQueue::top() const {
+    if (heap.empty()) {
+        throw out_of_range("ZoneQueue is empty.");
+    }
+    return heap.top();
+}
+
+RankedZone ZoneQueue::pop() {
+    if (heap.empty()) {
+        throw out_of_range("ZoneQueue is empty.");
+    }
+    RankedZone best = heap.top();
+    heap.pop();
+    return best;
+}
+
+ZoneQueue PriorityManager::buildQueue(const vector<DisasterZone>& zones) const {
     int maxPopulation = 0;
     int maxDemand = 0;
 
@@ -68,16 +100,25 @@ vector<RankedZone> PriorityManager::rankZones(const vector<DisasterZone>& zones)
         maxDemand = max(maxDemand, zones[i].unmetDemand);
     }
 
-    vector<RankedZone> ranked;
+    vector<RankedZone> scored;
     for (int i = 0; i < (int)zones.size(); i++) {
         RankedZone r;
         r.zone = zones[i];
         r.score = calculateScore(zones[i], maxPopulation, maxDemand);
-        ranked.push_back(r);
+        scored.push_back(r);
     }
 
-    // TODO: could use a heap instead of sorting everything, check later
-    sort(ranked.begin(), ranked.end(), higherPriority);
+    return ZoneQueue(scored);
+}
 
+vector<RankedZone> PriorityManager::rankZones(const vector<DisasterZone>& zones) const {
+    ZoneQueue queue = buildQueue(zones);
+
+    // popping everything from a heap gives a full ranking: O(n log n)
+    vector<RankedZone> ranked;
+    ranked.reserve(queue.size());
+    while (!queue.empty()) {
+        ranked.push_back(queue.pop());
+    }
     return ranked;
 }
