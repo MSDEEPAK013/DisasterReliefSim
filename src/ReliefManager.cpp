@@ -69,6 +69,32 @@ std::vector<int> ReliefManager::shortestPath(int from, int to) const {
     return graph.shortestPath(from, to);
 }
 
+void ReliefManager::addLocation(int id) {
+    graph.addLocation(id);
+}
+
+bool ReliefManager::isReachable(int from, int to) const {
+    return graph.isReachable(from, to);
+}
+
+Route ReliefManager::findRoute(int from, int to) const {
+    Route route;
+    route.path = graph.shortestPath(from, to);
+    route.found = !route.path.empty();
+    if (route.found) {
+        route.cost = graph.shortestDistance(from, to);
+    }
+    return route;
+}
+static string nodeLabel(const ReliefManager& m, int node) {
+    if (const DisasterZone* z = m.findZone(node)) {
+        return z->name + " (" + to_string(node) + ")";
+    }
+    if (const ResourceCenter* c = m.findCenter(node)) {
+        return c->name() + " (" + to_string(node) + ")";
+    }
+    return "Junction " + to_string(node);
+}
 
 bool ReliefManager::runStep(){
 
@@ -93,10 +119,35 @@ bool ReliefManager::runStep(){
         cout << "    " << (i + 1) << ". " << ranked[i].zone.name<< " (score " << ranked[i].score << ")\n";
     }
 
+    cout << "[3] Reachability and [4] nearest-center route:\n";
+    for (const RankedZone& rz : ranked) {
+        const ResourceCenter* bestCenter = nullptr;
+        Route bestRoute;
+        for (const auto& entry : centers) {
+            int centerNode = entry.second.id();   // center id doubles as node id
+            int zoneNode = rz.zone.id;            // zone id doubles as node id
+            if (!graph.isReachable(centerNode, zoneNode)) continue;   // BFS
+            Route r = findRoute(centerNode, zoneNode);                // Dijkstra
+            if (bestCenter == nullptr || r.cost < bestRoute.cost) {
+                bestCenter = &entry.second;
+                bestRoute = r;
+            }
+        }
+        if (bestCenter == nullptr) {
+            cout << "    " << rz.zone.name << ": UNREACHABLE\n";
+        } else {
+            cout << "    " << rz.zone.name << " <- " << bestCenter->name() << "\n";
+            cout << "        Route: ";
+            for (size_t i = 0; i < bestRoute.path.size(); i++) {
+                if (i > 0) cout << " -> ";
+                cout << nodeLabel(*this, bestRoute.path[i]);
+            }
+            cout << "\n        Cost: " << bestRoute.cost << "\n";
+        }
+    }
+
     // Stages 2-6 are placeholders until the other modules exist.
     cout << "[2] Allocate resources   - TODO (allocator)\n";
-    cout << "[3] Check reachability   - TODO (BFS/DFS)\n";
-    cout << "[4] Find route           - TODO (Dijkstra)\n";
     cout << "[5] Dispatch vehicles    - TODO\n";
     cout << "[6] Update state         - TODO\n";
     return true;

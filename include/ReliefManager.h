@@ -5,6 +5,7 @@
 #include "ResourceCenter.h"
 #include "Vehicle.h"
 #include "Graph.h"
+#include "Types.h"
 
 #include <unordered_map>
 #include <vector>
@@ -28,6 +29,9 @@ public:
 
     void addRoad(int from, int to, double cost);
     void setRoadBlocked(int from, int to, bool blocked);
+    void addLocation(int id);
+    bool isReachable(int from, int to) const;
+    Route findRoute(int from, int to) const;   // adapts Graph's results into a Route
     double shortestDistance(int from, int to) const;
     std::vector<int> shortestPath(int from, int to) const;
 
