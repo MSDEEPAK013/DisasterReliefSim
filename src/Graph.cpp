@@ -5,6 +5,7 @@
 #include <queue>
 #include <utility>
 #include <unordered_set>
+#include <functional>
 
 void Graph::addLocation(int id) {
     adjacencyList[id];
@@ -80,7 +81,7 @@ Graph::SearchResult Graph::runDijkstra(int start) const {
         auto [currentDistance, current] = pq.top();
         pq.pop();
 
-        if (currentDistance != result.distance.at(current)) {
+        if (currentDistance > result.distance.at(current)) {
             continue;
         }
 
@@ -90,6 +91,10 @@ Graph::SearchResult Graph::runDijkstra(int start) const {
             }
 
             double newDistance = currentDistance + road.cost;
+
+            if (!std::isfinite(newDistance)) {
+               continue;
+            }
 
             auto it = result.distance.find(road.to);
 

@@ -120,6 +120,53 @@ int main() {
     bfsGraph.setRoadBlocked(2, 3, false);
 
     assert(bfsGraph.isReachable(1, 4));
+        // Zero-cost roads should be valid
+    Graph zeroCostGraph;
+
+    zeroCostGraph.addRoad(1, 2, 0.0);
+    zeroCostGraph.addRoad(2, 3, 5.0);
+
+    assert(zeroCostGraph.shortestDistance(1, 2) == 0.0);
+    assert(zeroCostGraph.shortestDistance(1, 3) == 5.0);
+
+    std::vector<int> zeroCostPath = {1, 2, 3};
+    assert(zeroCostGraph.shortestPath(1, 3) == zeroCostPath);
+
+        // Equal-cost alternative routes
+    Graph equalCostGraph;
+
+    equalCostGraph.addRoad(1, 2, 2.0);
+    equalCostGraph.addRoad(2, 4, 3.0);
+
+    equalCostGraph.addRoad(1, 3, 1.0);
+    equalCostGraph.addRoad(3, 4, 4.0);
+
+    assert(equalCostGraph.shortestDistance(1, 4) == 5.0);
+
+    std::vector<int> path1 = {1, 2, 4};
+    std::vector<int> path2 = {1, 3, 4};
+
+    std::vector<int> actualPath = equalCostGraph.shortestPath(1, 4);
+
+    assert(actualPath == path1 || actualPath == path2);
+
+        // Multiple roads between the same locations
+    Graph duplicateRoadGraph;
+
+    duplicateRoadGraph.addRoad(1, 2, 5.0);
+    duplicateRoadGraph.addRoad(1, 2, 3.0);
+
+    assert(duplicateRoadGraph.shortestDistance(1, 2) == 3.0);
+
+    std::vector<int> duplicatePath = {1, 2};
+    assert(duplicateRoadGraph.shortestPath(1, 2) == duplicatePath);
+
+    // Blocking the road blocks both parallel edges
+    duplicateRoadGraph.setRoadBlocked(1, 2, true);
+
+    assert(std::isinf(duplicateRoadGraph.shortestDistance(1, 2)));
+    assert(duplicateRoadGraph.shortestPath(1, 2).empty());
+
     std::cout << "All Graph tests passed!\n";
     return 0;
 }
