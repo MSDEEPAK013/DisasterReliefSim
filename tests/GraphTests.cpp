@@ -132,7 +132,7 @@ int main() {
     assert(cycleGraph.isReachable(1, 3));
     assert(cycleGraph.isReachable(1, 4));
     assert(!cycleGraph.isReachable(1, 99));
-    
+
         // Zero-cost roads should be valid
     Graph zeroCostGraph;
 
@@ -177,8 +177,28 @@ int main() {
     // Blocking the road blocks both parallel edges
     duplicateRoadGraph.setRoadBlocked(1, 2, true);
 
+    assert(duplicateRoadGraph.isRoadBlocked(1, 2));
+    assert(duplicateRoadGraph.isRoadBlocked(2, 1));
+
     assert(std::isinf(duplicateRoadGraph.shortestDistance(1, 2)));
     assert(duplicateRoadGraph.shortestPath(1, 2).empty());
+
+    // Self-loop behaviour
+    Graph selfLoopGraph;
+
+    selfLoopGraph.addRoad(1, 1, 5.0);
+    selfLoopGraph.addRoad(1, 2, 3.0);
+
+    assert(selfLoopGraph.shortestDistance(1, 1) == 0.0);
+    assert(selfLoopGraph.shortestDistance(1, 2) == 3.0);
+
+    std::vector<int> selfLoopPath = {1};
+    assert(selfLoopGraph.shortestPath(1, 1) == selfLoopPath);
+
+    assert(selfLoopGraph.isReachable(1, 1));
+    assert(selfLoopGraph.isReachable(1, 2));
+
+
 
     std::cout << "All Graph tests passed!\n";
     return 0;
