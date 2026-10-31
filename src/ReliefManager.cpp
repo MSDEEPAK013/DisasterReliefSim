@@ -120,33 +120,51 @@ bool ReliefManager::runStep(){
     }
 
     cout << "[3] Reachability and [4] nearest-center route:\n";
+
     for (const RankedZone& rz : ranked) {
         const ResourceCenter* bestCenter = nullptr;
         Route bestRoute;
+
         for (const auto& entry : centers) {
-            int centerNode = entry.second.id();   // center id doubles as node id
-            int zoneNode = rz.zone.id;            // zone id doubles as node id
-            if (!graph.isReachable(centerNode, zoneNode)) continue;   // BFS
-            Route r = findRoute(centerNode, zoneNode);                // Dijkstra
-            if (bestCenter == nullptr || r.cost < bestRoute.cost) {
-                bestCenter = &entry.second;
-                bestRoute = r;
+            const ResourceCenter& center = entry.second;
+
+            int centerNode = center.id();
+            int zoneNode = rz.zone.id;
+
+            if (!graph.isReachable(centerNode, zoneNode)) {
+                continue;
+            }
+
+            Route route = findRoute(centerNode, zoneNode);
+
+            if (!route.found) {
+                continue;
+            }
+
+            if (bestCenter == nullptr || route.cost < bestRoute.cost) {
+                bestCenter = &center;
+                bestRoute = route;
             }
         }
+
         if (bestCenter == nullptr) {
             cout << "    " << rz.zone.name << ": UNREACHABLE\n";
         } else {
-            cout << "    " << rz.zone.name << " <- " << bestCenter->name() << "\n";
+            cout << "    " << rz.zone.name
+                 << " <- " << bestCenter->name() << "\n";
+
             cout << "        Route: ";
+
             for (size_t i = 0; i < bestRoute.path.size(); i++) {
                 if (i > 0) cout << " -> ";
                 cout << nodeLabel(*this, bestRoute.path[i]);
             }
+
             cout << "\n        Cost: " << bestRoute.cost << "\n";
         }
     }
 
-    // Stages 2-6 are placeholders until the other modules exist.
+    // Stages 2, 5 and 6 are handled by the other modules.
     cout << "[2] Allocate resources   - TODO (allocator)\n";
     cout << "[5] Dispatch vehicles    - TODO\n";
     cout << "[6] Update state         - TODO\n";
