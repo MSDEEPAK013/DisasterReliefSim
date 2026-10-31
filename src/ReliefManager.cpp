@@ -128,12 +128,8 @@ bool ReliefManager::runStep(){
         for (const auto& entry : centers) {
             const ResourceCenter& center = entry.second;
 
-            int centerNode = center.node();
-            int zoneNode = rz.zone.nodeId;
-
-            if (centerNode == -1 || zoneNode == -1) {
-                continue;
-            }
+            int centerNode = center.id();
+            int zoneNode = rz.zone.id;
 
             if (!graph.isReachable(centerNode, zoneNode)) {
                 continue;

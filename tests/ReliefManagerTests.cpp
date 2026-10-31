@@ -38,7 +38,7 @@ int main() {
 ReliefManager bfsManager;
 
 DisasterZone zone;
-zone.id = 10;
+zone.id = 3;
 zone.name = "Zone A";
 zone.severity = 5;
 zone.affectedPopulation = 100;
