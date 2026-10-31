@@ -32,4 +32,5 @@ public:
 
     double shortestDistance(int start, int destination) const;
     std::vector<int> shortestPath(int start, int destination) const;
+    bool isReachable(int start, int destination) const;
 };

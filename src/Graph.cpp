@@ -4,6 +4,7 @@
 #include <limits>
 #include <queue>
 #include <utility>
+#include <unordered_set>
 
 void Graph::addLocation(int id) {
     adjacencyList[id];
@@ -152,8 +153,46 @@ std::vector<int> Graph::shortestPath(
         current = it->second;
     }
 
+    
+
     path.push_back(start);
     std::reverse(path.begin(), path.end());
 
     return path;
+}
+
+bool Graph::isReachable(int start, int destination) const {
+
+    if (adjacencyList.find(start) == adjacencyList.end() ||
+        adjacencyList.find(destination) == adjacencyList.end()) {
+        return false;
+    }
+
+    std::queue<int> q;
+    std::unordered_set<int> visited;
+
+    q.push(start);
+    visited.insert(start);
+
+    while (!q.empty()) {
+
+        int current = q.front();
+        q.pop();
+
+        if (current == destination) {
+            return true;
+        }
+
+        for (const Road& road : adjacencyList.at(current)) {
+
+            if (road.blocked || visited.count(road.to)) {
+                continue;
+            }
+
+            visited.insert(road.to);
+            q.push(road.to);
+        }
+    }
+
+    return false;
 }

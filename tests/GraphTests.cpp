@@ -95,6 +95,31 @@ int main() {
     assert(blockTestGraph.shortestDistance(1, 2) ==
        std::numeric_limits<double>::infinity());
 
+        // BFS reachability tests
+    Graph bfsGraph;
+
+    bfsGraph.addRoad(1, 2, 5.0);
+    bfsGraph.addRoad(2, 3, 4.0);
+    bfsGraph.addRoad(3, 4, 2.0);
+
+    // Connected locations should be reachable
+    assert(bfsGraph.isReachable(1, 4));
+
+    // A location should be reachable from itself
+    assert(bfsGraph.isReachable(2, 2));
+
+    // Unknown location should be unreachable
+    assert(!bfsGraph.isReachable(1, 99));
+
+    // Blocking a road should affect reachability
+    bfsGraph.setRoadBlocked(2, 3, true);
+
+    assert(!bfsGraph.isReachable(1, 4));
+
+    // Unblocking should restore reachability
+    bfsGraph.setRoadBlocked(2, 3, false);
+
+    assert(bfsGraph.isReachable(1, 4));
     std::cout << "All Graph tests passed!\n";
     return 0;
 }
