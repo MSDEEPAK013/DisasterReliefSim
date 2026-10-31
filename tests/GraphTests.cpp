@@ -120,6 +120,19 @@ int main() {
     bfsGraph.setRoadBlocked(2, 3, false);
 
     assert(bfsGraph.isReachable(1, 4));
+
+    // BFS should handle cycles without revisiting locations indefinitely
+    Graph cycleGraph;
+
+    cycleGraph.addRoad(1, 2, 1.0);
+    cycleGraph.addRoad(2, 3, 1.0);
+    cycleGraph.addRoad(3, 4, 1.0);
+    cycleGraph.addRoad(4, 1, 1.0);
+
+    assert(cycleGraph.isReachable(1, 3));
+    assert(cycleGraph.isReachable(1, 4));
+    assert(!cycleGraph.isReachable(1, 99));
+    
         // Zero-cost roads should be valid
     Graph zeroCostGraph;
 
