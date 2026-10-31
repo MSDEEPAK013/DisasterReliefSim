@@ -58,8 +58,9 @@ bfsManager.runStep();
 
 std::cout.rdbuf(oldOutput);
 
-assert(output.str().find("Reachable") != std::string::npos);
-assert(output.str().find("1 -> 2 -> 3") != std::string::npos);
+assert(output.str().find("Reachability") != std::string::npos);
+assert(output.str().find("Route:") != std::string::npos);
+assert(output.str().find("Center A (1) -> Junction 2") != std::string::npos);
 
 // Check unreachable zone when a road is blocked.
 bfsManager.setRoadBlocked(2, 3, true);
@@ -71,8 +72,8 @@ bfsManager.runStep();
 
 std::cout.rdbuf(oldOutput);
 
-assert(blockedOutput.str().find("Not reachable") != std::string::npos);
-assert(blockedOutput.str().find("1 -> 2 -> 3") == std::string::npos);
+assert(blockedOutput.str().find("Zone A: UNREACHABLE") != std::string::npos);
+assert(blockedOutput.str().find("Route:") == std::string::npos);
 
     std::cout << "All ReliefManager routing tests passed!\n";
     return 0;

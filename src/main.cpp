@@ -4,6 +4,7 @@
 #include "ReliefManager.h"
 #include "Vehicle.h"
 #include "Resource.h"
+#include "Simulation.h"
 #include <exception>
 #include <iomanip>
 #include <iostream>

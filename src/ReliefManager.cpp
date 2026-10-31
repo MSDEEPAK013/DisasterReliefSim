@@ -69,6 +69,32 @@ std::vector<int> ReliefManager::shortestPath(int from, int to) const {
     return graph.shortestPath(from, to);
 }
 
+void ReliefManager::addLocation(int id) {
+    graph.addLocation(id);
+}
+
+bool ReliefManager::isReachable(int from, int to) const {
+    return graph.isReachable(from, to);
+}
+
+Route ReliefManager::findRoute(int from, int to) const {
+    Route route;
+    route.path = graph.shortestPath(from, to);
+    route.found = !route.path.empty();
+    if (route.found) {
+        route.cost = graph.shortestDistance(from, to);
+    }
+    return route;
+}
+static string nodeLabel(const ReliefManager& m, int node) {
+    if (const DisasterZone* z = m.findZone(node)) {
+        return z->name + " (" + to_string(node) + ")";
+    }
+    if (const ResourceCenter* c = m.findCenter(node)) {
+        return c->name() + " (" + to_string(node) + ")";
+    }
+    return "Junction " + to_string(node);
+}
 
 bool ReliefManager::runStep(){
 
@@ -93,59 +119,57 @@ bool ReliefManager::runStep(){
         cout << "    " << (i + 1) << ". " << ranked[i].zone.name<< " (score " << ranked[i].score << ")\n";
     }
 
-    // Stages 2-6 are placeholders until the other modules exist.
-    cout << "[2] Allocate resources   - TODO (allocator)\n";
-   cout << "[3] Check reachability:\n";
+    cout << "[3] Reachability and [4] nearest-center route:\n";
 
-for (const auto& centerEntry : centers) {
-    const ResourceCenter& center = centerEntry.second;
+    for (const RankedZone& rz : ranked) {
+        const ResourceCenter* bestCenter = nullptr;
+        Route bestRoute;
 
-    for (const auto& zone : active) {
+        for (const auto& entry : centers) {
+            const ResourceCenter& center = entry.second;
 
-        if (center.node() == -1 || zone.nodeId == -1) {
-            continue;
-        }
+            int centerNode = center.node();
+            int zoneNode = rz.zone.nodeId;
 
-        bool reachable = graph.isReachable(center.node(), zone.nodeId);
+            if (centerNode == -1 || zoneNode == -1) {
+                continue;
+            }
 
-        cout << "    Center " << center.id()
-             << " -> " << zone.name << ": "
-             << (reachable ? "Reachable" : "Not reachable")
-             << "\n";
-    }
-}
-    cout << "[4] Find route (Dijkstra):\n";
+            if (!graph.isReachable(centerNode, zoneNode)) {
+                continue;
+            }
 
-for (const auto& centerEntry : centers) {
-    const ResourceCenter& center = centerEntry.second;
+            Route route = findRoute(centerNode, zoneNode);
 
-    for (const auto& zone : active) {
+            if (!route.found) {
+                continue;
+            }
 
-        if (center.node() == -1 || zone.nodeId == -1) {
-            continue;
-        }
-
-        if (!graph.isReachable(center.node(), zone.nodeId)) {
-            continue;
-        }
-
-        vector<int> path = graph.shortestPath(center.node(), zone.nodeId);
-        double distance = graph.shortestDistance(center.node(), zone.nodeId);
-
-        cout << "    Center " << center.id()
-             << " -> " << zone.name << ": ";
-
-        for (size_t i = 0; i < path.size(); i++) {
-            cout << path[i];
-
-            if (i + 1 < path.size()) {
-                cout << " -> ";
+            if (bestCenter == nullptr || route.cost < bestRoute.cost) {
+                bestCenter = &center;
+                bestRoute = route;
             }
         }
 
-        cout << " (Distance: " << distance << ")\n";
+        if (bestCenter == nullptr) {
+            cout << "    " << rz.zone.name << ": UNREACHABLE\n";
+        } else {
+            cout << "    " << rz.zone.name
+                 << " <- " << bestCenter->name() << "\n";
+
+            cout << "        Route: ";
+
+            for (size_t i = 0; i < bestRoute.path.size(); i++) {
+                if (i > 0) cout << " -> ";
+                cout << nodeLabel(*this, bestRoute.path[i]);
+            }
+
+            cout << "\n        Cost: " << bestRoute.cost << "\n";
+        }
     }
-}
+
+    // Stages 2, 5 and 6 are handled by the other modules.
+    cout << "[2] Allocate resources   - TODO (allocator)\n";
     cout << "[5] Dispatch vehicles    - TODO\n";
     cout << "[6] Update state         - TODO\n";
     return true;
