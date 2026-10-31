@@ -95,8 +95,57 @@ bool ReliefManager::runStep(){
 
     // Stages 2-6 are placeholders until the other modules exist.
     cout << "[2] Allocate resources   - TODO (allocator)\n";
-    cout << "[3] Check reachability   - TODO (BFS/DFS)\n";
-    cout << "[4] Find route           - TODO (Dijkstra)\n";
+   cout << "[3] Check reachability:\n";
+
+for (const auto& centerEntry : centers) {
+    const ResourceCenter& center = centerEntry.second;
+
+    for (const auto& zone : active) {
+
+        if (center.node() == -1 || zone.nodeId == -1) {
+            continue;
+        }
+
+        bool reachable = graph.isReachable(center.node(), zone.nodeId);
+
+        cout << "    Center " << center.id()
+             << " -> " << zone.name << ": "
+             << (reachable ? "Reachable" : "Not reachable")
+             << "\n";
+    }
+}
+    cout << "[4] Find route (Dijkstra):\n";
+
+for (const auto& centerEntry : centers) {
+    const ResourceCenter& center = centerEntry.second;
+
+    for (const auto& zone : active) {
+
+        if (center.node() == -1 || zone.nodeId == -1) {
+            continue;
+        }
+
+        if (!graph.isReachable(center.node(), zone.nodeId)) {
+            continue;
+        }
+
+        vector<int> path = graph.shortestPath(center.node(), zone.nodeId);
+        double distance = graph.shortestDistance(center.node(), zone.nodeId);
+
+        cout << "    Center " << center.id()
+             << " -> " << zone.name << ": ";
+
+        for (size_t i = 0; i < path.size(); i++) {
+            cout << path[i];
+
+            if (i + 1 < path.size()) {
+                cout << " -> ";
+            }
+        }
+
+        cout << " (Distance: " << distance << ")\n";
+    }
+}
     cout << "[5] Dispatch vehicles    - TODO\n";
     cout << "[6] Update state         - TODO\n";
     return true;
