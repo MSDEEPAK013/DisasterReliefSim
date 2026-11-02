@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+inline constexpr int DEFAULT_SUPPLY_ID = 101;
 
 // A path through the road network, produced by the graph module.
 struct Route {
