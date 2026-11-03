@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <stdexcept>
 
 int main() {
     ReliefManager manager;
@@ -74,6 +75,29 @@ std::cout.rdbuf(oldOutput);
 
 assert(blockedOutput.str().find("Zone A: UNREACHABLE") != std::string::npos);
 assert(blockedOutput.str().find("Route:") == std::string::npos);
+
+    // Resource registry: kinds of supply are stored in a hash table by id.
+    ReliefManager registry;
+    assert(registry.findResource(101) == nullptr);
+
+    registry.addResource(Resource(101, "Water", "litres"));
+    registry.addResource(Resource(102, "Medicine", "boxes"));
+
+    const Resource* water = registry.findResource(101);
+    assert(water != nullptr);
+    assert(water->name() == "Water" && water->unit() == "litres");
+    assert(registry.findResource(102)->name() == "Medicine");
+    assert(registry.findResource(103) == nullptr);
+
+    // A duplicate id is rejected and the original stays as it was.
+    bool rejectedDuplicate = false;
+    try {
+        registry.addResource(Resource(101, "Food"));
+    } catch (const std::invalid_argument&) {
+        rejectedDuplicate = true;
+    }
+    assert(rejectedDuplicate);
+    assert(registry.findResource(101)->name() == "Water");
 
     std::cout << "All ReliefManager routing tests passed!\n";
     return 0;
