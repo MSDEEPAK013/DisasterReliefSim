@@ -161,6 +161,138 @@ int main() {
 
         cout << "\nAll " << passed << " tests passed.\n";
         return 0;
+
+
+        // 9. no vehicles / unavailable vehicle
+        World none;
+        none.graph.addRoad(100, 1, 5.0);
+        none.addCenter(100, 100);
+        AllocationPlan noTruck = none.plan({zone(1, 3, 40)});
+        check(noTruck.orders.empty() && noTruck.shortfalls.size() == 1 &&
+              noTruck.shortfalls[0].reason ==
+                  "no available vehicle can reach a center with supply",
+              "Without vehicles nothing is dispatched and the reason is given");
+
+        World parked = w;
+        parked.vehicles.at(1).setAvailable(false);
+        check(parked.plan({zone(1, 3, 40)}).orders.empty(),
+              "An unavailable vehicle is not used");
+        parked.vehicles.at(1).setAvailable(true);
+        check(parked.plan({zone(1, 3, 40)}).orders.size() == 1,
+              "The same vehicle is used again once it is available");
+
+        // 10. a vehicle in another part of the map cannot help
+        World cutOff = w;
+        cutOff.vehicles.erase(1);
+        cutOff.graph.addRoad(7, 8, 1.0);        // a separate island
+        cutOff.addVehicle(1, 50, 7);
+        check(cutOff.plan({zone(1, 3, 40)}).orders.empty(),
+              "A vehicle that cannot reach the center is not used");
+
+        World lost = w;
+        lost.vehicles.erase(1);
+        lost.addVehicle(1, 50, 555);            // a node that is not in the graph
+        check(lost.plan({zone(1, 3, 40)}).orders.empty(),
+              "A vehicle at an unknown location is not used");
+
+        // 11. unreachable zone
+        World island = w;
+        island.graph.addLocation(5);            // exists, but has no roads
+        AllocationPlan stranded = island.plan({zone(5, 3, 40)});
+        check(stranded.orders.empty() && stranded.shortfalls.size() == 1 &&
+              stranded.shortfalls[0].reason ==
+                  "no center with supply can reach this zone",
+              "A zone with no road to any center gets nothing");
+
+        // 12. blocked roads cut a zone off, unblocking restores it
+        World road = w;
+        road.graph.setRoadBlocked(100, 1, true);
+        check(road.plan({zone(1, 3, 40)}).orders.empty(),
+              "A blocked road makes the zone unreachable");
+        road.graph.setRoadBlocked(100, 1, false);
+        check(road.plan({zone(1, 3, 40)}).orders.size() == 1,
+              "The zone is served again after the road reopens");
+
+        // 13. a zone that is not on the map at all
+        check(w.plan({zone(99, 3, 40)}).shortfalls[0].reason ==
+                  "no center with supply can reach this zone",
+              "A zone missing from the road network is reported, not crashed on");
+
+        // 14. cheapest reachable center wins; ties go to the lower id
+        //     0 --1-- 3 (zone), center 20 is 2 away, center 10 is 6 away
+        World two;
+        two.graph.addRoad(0, 3, 1.0);
+        two.graph.addRoad(3, 20, 2.0);
+        two.graph.addRoad(3, 10, 6.0);
+        two.addCenter(10, 100);   // farther
+        two.addCenter(20, 100);   // nearer
+        two.addVehicle(1, 50, 0);
+        check(two.plan({zone(3, 3, 40)}).orders[0].centerId == 20,
+              "The cheapest reachable center is chosen");
+
+        World tie;
+        tie.graph.addRoad(0, 3, 1.0);
+        tie.graph.addRoad(3, 20, 4.0);
+        tie.graph.addRoad(3, 10, 4.0);
+        tie.addCenter(20, 100);
+        tie.addCenter(10, 100);
+        tie.addVehicle(1, 50, 0);
+        check(tie.plan({zone(3, 3, 40)}).orders[0].centerId == 10,
+              "Equal-cost centers are resolved by the lower id");
+
+        // 15. a second center takes over when the first runs dry
+        World relay;
+        relay.graph.addRoad(0, 3, 1.0);
+        relay.graph.addRoad(3, 10, 2.0);
+        relay.graph.addRoad(3, 20, 6.0);
+        relay.addCenter(10, 30);     // near but small
+        relay.addCenter(20, 100);    // far but big
+        relay.addVehicle(1, 100, 0);
+        relay.addVehicle(2, 100, 0);
+        AllocationPlan relayPlan = relay.plan({zone(3, 3, 80)});
+        check(relayPlan.orders.size() == 2 &&
+              relayPlan.orders[0].centerId == 10 && relayPlan.orders[0].quantity == 30 &&
+              relayPlan.orders[1].centerId == 20 && relayPlan.orders[1].quantity == 50,
+              "When the nearest center runs out the next one covers the rest");
+
+        // 16. equal priority: the lower zone id is served first
+        World same;
+        same.graph.addRoad(100, 1, 5.0);
+        same.graph.addRoad(100, 2, 5.0);
+        same.addCenter(100, 40);
+        same.addVehicle(1, 100, 100);
+        same.addVehicle(2, 100, 100);
+        AllocationPlan tied = same.plan({zone(2, 3, 40), zone(1, 3, 40)});
+        check(totalFor(tied, 1) == 40 && totalFor(tied, 2) == 0,
+              "Zones with equal priority are served in ascending id order");
+
+        // 17. a zone with no unmet demand needs nothing
+        AllocationPlan idle = w.plan({zone(1, 3, 0)});
+        check(idle.orders.empty() && idle.shortfalls.empty(),
+              "A zone with zero demand produces no order and no shortfall");
+
+        // 18. resource id is a parameter: other kinds of supply are separate
+        const int MEDICINE = 7;
+        World mixed;
+        mixed.graph.addRoad(100, 1, 5.0);
+        mixed.addCenter(100, 100, MEDICINE);   // only medicine, no water
+        mixed.addVehicle(1, 50, 100);
+        check(mixed.plan({zone(1, 3, 40)}, WATER).orders.empty(),
+              "Stock of a different resource is not used");
+        AllocationPlan meds = mixed.plan({zone(1, 3, 40)}, MEDICINE);
+        check(meds.orders.size() == 1 && meds.orders[0].resourceId == MEDICINE,
+              "The same allocator serves another resource id");
+
+        // 19. same input, same output
+        AllocationPlan again = relay.plan({zone(3, 3, 80)});
+        bool identical = again.orders.size() == relayPlan.orders.size();
+        for (size_t i = 0; identical && i < again.orders.size(); i++) {
+            identical = again.orders[i].centerId == relayPlan.orders[i].centerId &&
+                        again.orders[i].vehicleId == relayPlan.orders[i].vehicleId &&
+                        again.orders[i].quantity == relayPlan.orders[i].quantity;
+        }
+        check(identical, "Planning twice gives the identical plan");
+        
     } catch (const exception& error) {
         cerr << "\nTEST FAILURE: " << error.what() << '\n';
         return 1;
