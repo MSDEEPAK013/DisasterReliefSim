@@ -30,6 +30,13 @@ void ReliefManager::addVehicle(const Vehicle& vehicle) {
     vehicles.emplace(vehicle.id(), vehicle);
 }
 
+void ReliefManager::addResource(const Resource& resource) {
+    if (resources.count(resource.id()) > 0) {
+        throw invalid_argument("A resource with this id already exists.");
+    }
+    resources.emplace(resource.id(), resource);
+}
+
 const DisasterZone* ReliefManager::findZone(int id) const {
     auto it = zones.find(id);
     return it == zones.end() ? nullptr : &it->second;
@@ -43,6 +50,11 @@ const ResourceCenter* ReliefManager::findCenter(int id) const {
 const Vehicle* ReliefManager::findVehicle(int id) const {
     auto it = vehicles.find(id);
     return it == vehicles.end() ? nullptr : &it->second;
+}
+
+const Resource* ReliefManager::findResource(int id) const {
+    auto it = resources.find(id);
+    return it == resources.end() ? nullptr : &it->second;
 }
 
 bool ReliefManager::hasUnmetDemand() const {
