@@ -39,6 +39,9 @@ public:
     double shortestDistance(int from, int to) const;
     std::vector<int> shortestPath(int from, int to) const;
 
+
+    void addStock(int centerId, int resourceId, int quantity);
+    void setVehicleAvailable(int vehicleId, bool available);
     // Runs one simulation step. Returns false if there was nothing to do.
     bool runStep();
 

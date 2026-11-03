@@ -6,13 +6,37 @@
 #include "Resource.h"
 #include "Simulation.h"
 #include "Types.h"
+#include "Console.h"
+#include "fstream"
 #include <exception>
 #include <iomanip>
 #include <iostream>
 #include <vector>
 using namespace std;
 
-int main() {
+int main(int argc, char* argv[]) {
+        if (argc >= 2) {
+        ReliefManager relief;
+        const string mode = argv[1];
+        if (mode == "--interactive") {
+            Console console(relief, cin, true);
+            console.run();
+            return 0;
+        }
+        if (mode == "--script" && argc >= 3) {
+            ifstream file(argv[2]);
+            if (!file) {
+                cerr << "Cannot open " << argv[2] << "\n";
+                return 1;
+            }
+            Console console(relief, file, false);
+            console.run();
+            return 0;
+        }
+        cerr << "Usage: disaster_relief [--interactive | --script <file>]\n";
+        return 1;
+    }
+    
     // sample data for now
     const vector<DisasterZone> zones{
         {1, "North Sector", 5, 1200, 500},

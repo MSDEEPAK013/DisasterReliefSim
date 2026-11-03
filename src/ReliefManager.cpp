@@ -108,6 +108,23 @@ static string nodeLabel(const ReliefManager& m, int node) {
     return "Junction " + to_string(node);
 }
 
+void ReliefManager::addStock(int centerId, int resourceId, int quantity) {
+    auto it = centers.find(centerId);
+    if (it == centers.end()) {
+        throw invalid_argument("Unknown center id.");
+    }
+    it->second.addStock(resourceId, quantity);
+}
+
+void ReliefManager::setVehicleAvailable(int vehicleId, bool available) {
+    auto it = vehicles.find(vehicleId);
+    if (it == vehicles.end()) {
+        throw invalid_argument("Unknown vehicle id.");
+    }
+    it->second.setAvailable(available);
+}
+
+
 bool ReliefManager::runStep(){
 
      // Only zones that still need help take part in this step.
