@@ -7,6 +7,7 @@
 #include "Vehicle.h"
 #include "Graph.h"
 #include "Types.h"
+#include "Allocator.h"
 
 #include <unordered_map>
 #include <vector>

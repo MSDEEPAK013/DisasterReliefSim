@@ -1,5 +1,6 @@
 
 #include "ReliefManager.h"
+#include "Types.h"
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -62,6 +63,40 @@ std::cout.rdbuf(oldOutput);
 assert(output.str().find("Reachability") != std::string::npos);
 assert(output.str().find("Route:") != std::string::npos);
 assert(output.str().find("Center A (1) -> Junction 2") != std::string::npos);
+
+    // Dispatch changes the state: stock and demand both go down.
+    ReliefManager dispatch;
+    dispatch.addZone({1, "Zone A", 5, 1000, 80});
+    ResourceCenter depot(101, "Depot");
+    depot.addStock(DEFAULT_SUPPLY_ID, 200);
+    dispatch.addCenter(depot);
+    dispatch.addVehicle(Vehicle(1, 50, 101));
+    dispatch.addRoad(101, 1, 5.0);
+
+    std::ostringstream sink;
+    std::streambuf* saved = std::cout.rdbuf(sink.rdbuf());
+    bool first = dispatch.runStep();
+    assert(dispatch.findZone(1)->unmetDemand == 30);        // 80 - 50 (vehicle capacity)
+    assert(dispatch.findCenter(101)->availableStock(DEFAULT_SUPPLY_ID) == 150);
+    bool second = dispatch.runStep();
+    std::cout.rdbuf(saved);
+
+    assert(first && second);
+    assert(!dispatch.hasUnmetDemand());                     // 30 - 30
+    assert(dispatch.findCenter(101)->availableStock(DEFAULT_SUPPLY_ID) == 120);
+
+    // A step that dispatches nothing returns false, so a Simulation stops early.
+    ReliefManager stuck;
+    stuck.addZone({1, "Zone A", 5, 1000, 80});
+    stuck.addCenter(ResourceCenter(101, "Empty Depot"));    // no stock
+    stuck.addVehicle(Vehicle(1, 50, 101));
+    stuck.addRoad(101, 1, 5.0);
+
+    std::ostringstream quiet;
+    std::streambuf* old = std::cout.rdbuf(quiet.rdbuf());
+    bool progressed = stuck.runStep();
+    std::cout.rdbuf(old);
+    assert(!progressed);
 
 // Check unreachable zone when a road is blocked.
 bfsManager.setRoadBlocked(2, 3, true);

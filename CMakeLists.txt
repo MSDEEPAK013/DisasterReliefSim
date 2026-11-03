@@ -11,6 +11,8 @@ add_executable(disaster_relief
     src/PriorityManager.cpp
     src/ReliefManager.cpp
     src/Graph.cpp
+    src/Allocator.cpp
+    src/Simulation.cpp
 )
 
 
@@ -45,11 +47,12 @@ if(BUILD_TESTING)
     )
 
     
-    add_executable(relief_manager_tests
+        add_executable(relief_manager_tests
         tests/ReliefManagerTests.cpp
         src/ReliefManager.cpp
         src/PriorityManager.cpp
         src/Graph.cpp
+        src/Allocator.cpp
     )
 
     target_include_directories(relief_manager_tests PRIVATE include)
