@@ -2,10 +2,12 @@
 
 #include "DisasterZone.h"
 #include "PriorityManager.h"
+#include "Resource.h"
 #include "ResourceCenter.h"
 #include "Vehicle.h"
 #include "Graph.h"
 #include "Types.h"
+#include "Allocator.h"
 
 #include <unordered_map>
 #include <vector>
@@ -19,11 +21,13 @@ public:
     void addZone(const DisasterZone& zone);
     void addCenter(const ResourceCenter& center);
     void addVehicle(const Vehicle& vehicle);
+    void addResource(const Resource& resource);
 
     // Lookup by id (hash table). Returns nullptr if the id is unknown.
     const DisasterZone* findZone(int id) const;
     const ResourceCenter* findCenter(int id) const;
     const Vehicle* findVehicle(int id) const;
+    const Resource* findResource(int id) const;
 
     bool hasUnmetDemand() const;
 
@@ -42,6 +46,7 @@ private:
     std::unordered_map<int, DisasterZone> zones;
     std::unordered_map<int, ResourceCenter> centers;
     std::unordered_map<int, Vehicle> vehicles;
+    std::unordered_map<int, Resource> resources;
     PriorityManager priority;
 
     Graph graph;

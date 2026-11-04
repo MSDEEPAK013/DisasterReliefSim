@@ -7,18 +7,51 @@ using namespace std;
 
 Simulation::Simulation(ReliefManager& manager) : relief(manager) {}
 
+void Simulation::schedule(int step, const string& description,
+                          function<void(ReliefManager&)> action) {
+    if (step <= 0) {
+        throw invalid_argument("Event step must be positive.");
+    }
+    if (!action) {
+        throw invalid_argument("Event needs an action.");
+    }
+    events.push_back({step, description, action});
+}
+
 int Simulation::run(int maxSteps) {
     if (maxSteps <= 0) {
         throw invalid_argument("maxSteps must be positive.");
     }
 
     int steps = 0;
-    while (steps < maxSteps && relief.hasUnmetDemand()) {
-        cout << "\n=== Step " << (steps + 1) << " ===\n";
+    while (steps < maxSteps) {
+        const int stepNumber = steps + 1;
+
+        for (const Event& e : events) {
+            if (e.step == stepNumber) {
+                cout << "\n>>> Event before step " << stepNumber << ": "
+                     << e.description << "\n";
+                e.action(relief);
+            }
+        }
+
+        if (!relief.hasUnmetDemand()) {
+            break;
+        }
+
+        cout << "\n=== Step " << stepNumber << " ===\n";
         bool didWork = relief.runStep();
         steps++;
+
         if (!didWork) {
-            break;   // nothing more can be done
+            // Only stop if no later event could change the situation.
+            bool laterEvent = false;
+            for (const Event& e : events) {
+                if (e.step > stepNumber) laterEvent = true;
+            }
+            if (!laterEvent) {
+                break;
+            }
         }
     }
 

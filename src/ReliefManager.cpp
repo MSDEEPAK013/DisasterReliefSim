@@ -30,6 +30,13 @@ void ReliefManager::addVehicle(const Vehicle& vehicle) {
     vehicles.emplace(vehicle.id(), vehicle);
 }
 
+void ReliefManager::addResource(const Resource& resource) {
+    if (resources.count(resource.id()) > 0) {
+        throw invalid_argument("A resource with this id already exists.");
+    }
+    resources.emplace(resource.id(), resource);
+}
+
 const DisasterZone* ReliefManager::findZone(int id) const {
     auto it = zones.find(id);
     return it == zones.end() ? nullptr : &it->second;
@@ -43,6 +50,11 @@ const ResourceCenter* ReliefManager::findCenter(int id) const {
 const Vehicle* ReliefManager::findVehicle(int id) const {
     auto it = vehicles.find(id);
     return it == vehicles.end() ? nullptr : &it->second;
+}
+
+const Resource* ReliefManager::findResource(int id) const {
+    auto it = resources.find(id);
+    return it == resources.end() ? nullptr : &it->second;
 }
 
 bool ReliefManager::hasUnmetDemand() const {
@@ -119,7 +131,7 @@ bool ReliefManager::runStep(){
         cout << "    " << (i + 1) << ". " << ranked[i].zone.name<< " (score " << ranked[i].score << ")\n";
     }
 
-    cout << "[3] Reachability and [4] nearest-center route:\n";
+    cout << "[2] Reachability and Nearest-center route:\n";
 
     for (const RankedZone& rz : ranked) {
         const ResourceCenter* bestCenter = nullptr;
@@ -164,11 +176,30 @@ bool ReliefManager::runStep(){
         }
     }
 
-    // Stages 2, 5 and 6 are handled by the other modules.
-    cout << "[2] Allocate resources   - TODO (allocator)\n";
-    cout << "[5] Dispatch vehicles    - TODO\n";
-    cout << "[6] Update state         - TODO\n";
-    return true;
+    cout << "[3] Allocation Plan\n";
+    AllocationPlan plan = Allocator::plan(priority.buildQueue(active),
+                                          centers, vehicles, graph,
+                                          DEFAULT_SUPPLY_ID);
+    for (const DispatchOrder& o : plan.orders) {
+        cout << "    " << findCenter(o.centerId)->name() << " -> "
+             << findZone(o.zoneId)->name << ": " << o.quantity
+             << " units by vehicle " << o.vehicleId
+             << " (route cost " << o.route.cost << ")\n";
+    }
+    for (const Shortfall& s : plan.shortfalls) {
+        cout << "    Shortfall: " << findZone(s.zoneId)->name << " still needs "
+             << s.unserved << " units (" << s.reason << ")\n";
+    }
 
+
+
+    cout << "[4] Dispatch and state update:\n";
+    for (const DispatchOrder& o : plan.orders) {
+    centers.at(o.centerId).removeStock(o.resourceId, o.quantity);
+    zones.at(o.zoneId).unmetDemand -= o.quantity;
+    cout << "    Vehicle " << o.vehicleId << " delivered " << o.quantity
+         << " units to " << findZone(o.zoneId)->name << "\n";
+    }
+    return !plan.orders.empty();   // false = nothing dispatched, so the loop stops
 
 }
