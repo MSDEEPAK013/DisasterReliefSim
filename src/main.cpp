@@ -7,7 +7,7 @@
 #include "Simulation.h"
 #include "Types.h"
 #include "Console.h"
-#include "fstream"
+#include <fstream>
 #include <exception>
 #include <iomanip>
 #include <iostream>
@@ -15,6 +15,7 @@
 using namespace std;
 
 int main(int argc, char* argv[]) {
+    cout << fixed << setprecision(3);
         if (argc >= 2) {
         ReliefManager relief;
         const string mode = argv[1];
