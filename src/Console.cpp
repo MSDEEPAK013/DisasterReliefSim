@@ -94,6 +94,9 @@ bool Console::execute(const string& command, istringstream& args) {
         if (relief.findZone(id) != nullptr) {
             throw invalid_argument("That id belongs to a zone. Zones and centers share map node numbers.");
         }
+        if (stock < 0) {                                             // ADD
+            throw invalid_argument("Stock cannot be negative.");     // ADD
+        } 
         ResourceCenter center(id, spaced(name));
         if (stock > 0) {
             center.addStock(DEFAULT_SUPPLY_ID, stock);
@@ -189,7 +192,11 @@ bool Console::execute(const string& command, istringstream& args) {
         string token;
         if (args >> token) {
             try {
-                count = stoi(token);
+                size_t used = 0;                                       
+                count = stoi(token, &used);
+                if (used != token.size()) {
+                    throw invalid_argument("trailing characters");
+                }
             } catch (const exception&) {
                 throw invalid_argument("Expected a number of steps.");
             }
