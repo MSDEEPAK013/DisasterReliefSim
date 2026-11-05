@@ -13,6 +13,7 @@ add_executable(disaster_relief
     src/Graph.cpp
     src/Allocator.cpp
     src/Simulation.cpp
+    src/Console.cpp
 )
 
 
