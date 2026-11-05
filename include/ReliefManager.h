@@ -34,6 +34,7 @@ public:
     void addRoad(int from, int to, double cost);
     void setRoadBlocked(int from, int to, bool blocked);
     void addLocation(int id);
+    bool hasLocation(int id) const;
     bool isReachable(int from, int to) const;
     Route findRoute(int from, int to) const;   // adapts Graph's results into a Route
     double shortestDistance(int from, int to) const;

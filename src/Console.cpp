@@ -122,6 +122,10 @@ bool Console::execute(const string& command, istringstream& args) {
             cout << "Usage: vehicle <id> <capacity> <startNode>\n";
             return true;
         }
+        if (!relief.hasLocation(node)) {                                                       
+            throw invalid_argument("Node " + to_string(node) + " is not on the map. "           
+                "Add the center or junction (or a road to it) before placing a vehicle there."); 
+        }
         relief.addVehicle(Vehicle(id, capacity, node));
         vehicleIds.push_back(id);
         cout << "Added vehicle " << id << " (capacity " << capacity << ", at node " << node << ").\n";

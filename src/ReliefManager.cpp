@@ -13,12 +13,18 @@ void ReliefManager::addZone(const DisasterZone& zone) {
     if (zones.count(zone.id) > 0) {
         throw invalid_argument("A zone with this id already exists.");
     }
+    if (centers.count(zone.id) > 0) {                                                                  // ADD
+        throw invalid_argument("This id belongs to a center. Zones and centers share map node ids.");  // ADD
+    }
     zones.emplace(zone.id, zone);
 }
 
 void ReliefManager::addCenter(const ResourceCenter& center) {
     if (centers.count(center.id()) > 0) {
         throw invalid_argument("A center with this id already exists.");
+    }
+    if (zones.count(center.id()) > 0) {                                                                // ADD
+        throw invalid_argument("This id belongs to a zone. Zones and centers share map node ids.");    // ADD
     }
     centers.emplace(center.id(), center);
 }
@@ -83,6 +89,10 @@ std::vector<int> ReliefManager::shortestPath(int from, int to) const {
 
 void ReliefManager::addLocation(int id) {
     graph.addLocation(id);
+}
+
+bool ReliefManager::hasLocation(int id) const {      // ADD (whole function)
+    return graph.hasLocation(id);
 }
 
 bool ReliefManager::isReachable(int from, int to) const {

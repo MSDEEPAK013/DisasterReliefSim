@@ -11,6 +11,10 @@ void Graph::addLocation(int id) {
     adjacencyList[id];
 }
 
+bool Graph::hasLocation(int id) const {                       
+    return adjacencyList.find(id) != adjacencyList.end();
+}
+
 void Graph::addRoad(int from, int to, double cost) {
     if (cost < 0 || !std::isfinite(cost)) {
         return;
