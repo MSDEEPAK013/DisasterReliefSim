@@ -84,15 +84,20 @@ AllocationPlan Allocator::plan(ZoneQueue zones,
             // same connected area as the zone; no other center would do better.
             int bestVehicle = -1;
             int bestCapacity = 0;
+            bool reachableButBusy = false; 
 
             for (int id : vehicleIds) {
                 const Vehicle& vehicle = vehicles.at(id);
-                if (!vehicle.isAvailable() || busyVehicles.count(id) > 0) {
+                if (!vehicle.isAvailable()) {                 
                     continue;
                 }
                 if (!graph.isReachable(vehicle.location(), bestCenter)) {
                     continue;
                 }
+                if (busyVehicles.count(id) > 0) {                       
+                    reachableButBusy = true; 
+                    continue;                                          
+                } 
                 if (vehicle.capacity() > bestCapacity) {
                     bestCapacity = vehicle.capacity();
                     bestVehicle = id;
@@ -100,7 +105,9 @@ AllocationPlan Allocator::plan(ZoneQueue zones,
             }
 
             if (bestVehicle < 0) {
-                reason = "no available vehicle can reach a center with supply";
+                reason = reachableButBusy
+                    ? "every vehicle that can reach a center is already used this step"
+                    : "no available vehicle can reach a center with supply";
                 break;
             }
 

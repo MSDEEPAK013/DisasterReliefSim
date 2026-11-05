@@ -48,7 +48,9 @@ zone.unmetDemand = 50;
 zone.nodeId = 3;
 
 bfsManager.addZone(zone);
-bfsManager.addCenter(ResourceCenter(1, "Center A", 1));
+ResourceCenter centerA(1, "Center A", 1);
+centerA.addStock(DEFAULT_SUPPLY_ID, 100);   // an empty center is no longer listed as a route source
+bfsManager.addCenter(centerA);
 
 bfsManager.addRoad(1, 2, 4.0);
 bfsManager.addRoad(2, 3, 6.0);

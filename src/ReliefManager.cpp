@@ -164,8 +164,15 @@ bool ReliefManager::runStep(){
         const ResourceCenter* bestCenter = nullptr;
         Route bestRoute;
 
+        bool anyStock = false;
+
         for (const auto& entry : centers) {
             const ResourceCenter& center = entry.second;
+
+            if (center.availableStock(DEFAULT_SUPPLY_ID) <= 0) {     
+                continue;   
+            }                                                        
+            anyStock = true;
 
             int centerNode = center.id();
             int zoneNode = rz.zone.id;
@@ -187,7 +194,8 @@ bool ReliefManager::runStep(){
         }
 
         if (bestCenter == nullptr) {
-            cout << "    " << rz.zone.name << ": UNREACHABLE\n";
+            cout << "    " << rz.zone.name
+                 << (anyStock ? ": UNREACHABLE\n" : ": NO STOCK at any center\n");
         } else {
             cout << "    " << rz.zone.name
                  << " <- " << bestCenter->name() << "\n";
