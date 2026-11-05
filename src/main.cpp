@@ -88,7 +88,8 @@ int main(int argc, char* argv[]) {
     ResourceCenter depot(101, "Central Warehouse");
     depot.addStock(DEFAULT_SUPPLY_ID, 400);
     relief.addCenter(depot);
-    relief.addVehicle(Vehicle(1, 100, 101));         // starts on a graph node
+    relief.addVehicle(Vehicle(1, 100, 101)); 
+    relief.setTravelSpeed(10.0);          // starts on a graph node
 
     relief.addLocation(3);                           // zone 3 exists but has no roads
     relief.addRoad(101, 201, 4);
