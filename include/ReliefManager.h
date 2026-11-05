@@ -44,6 +44,8 @@ public:
     void addStock(int centerId, int resourceId, int quantity);
     void setVehicleAvailable(int vehicleId, bool available);
     // Runs one simulation step. Returns false if there was nothing to do.
+    void setTravelSpeed(double distancePerStep);
+    bool hasVehiclesOnTrip() const;
     bool runStep();
 
 private:
@@ -52,6 +54,8 @@ private:
     std::unordered_map<int, Vehicle> vehicles;
     std::unordered_map<int, Resource> resources;
     PriorityManager priority;
+    double speed = 0.0;                                  
+    std::unordered_map<int, int> committed;
 
     Graph graph;
 };
