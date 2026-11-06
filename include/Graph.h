@@ -34,4 +34,5 @@ public:
     double shortestDistance(int start, int destination) const;
     std::vector<int> shortestPath(int start, int destination) const;
     bool isReachable(int start, int destination) const;
+    const std::unordered_map<int, std::vector<Road>>& adjacency() const { return adjacencyList; }
 };

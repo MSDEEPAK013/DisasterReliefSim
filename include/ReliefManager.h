@@ -47,6 +47,10 @@ public:
     void setTravelSpeed(double distancePerStep);
     bool hasVehiclesOnTrip() const;
     bool runStep();
+    const std::unordered_map<int, DisasterZone>& allZones() const { return zones; }
+    const std::unordered_map<int, ResourceCenter>& allCenters() const { return centers; }
+    const std::unordered_map<int, Vehicle>& allVehicles() const { return vehicles; }
+    const Graph& roadNetwork() const { return graph; }
 
 private:
     std::unordered_map<int, DisasterZone> zones;
