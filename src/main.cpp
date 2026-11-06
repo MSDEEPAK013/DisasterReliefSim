@@ -7,7 +7,7 @@
 #include "Simulation.h"
 #include "Types.h"
 #include "Console.h"
-#include "fstream"
+#include <fstream>
 #include <exception>
 #include <iomanip>
 #include <iostream>
@@ -15,6 +15,7 @@
 using namespace std;
 
 int main(int argc, char* argv[]) {
+    cout << fixed << setprecision(3);
         if (argc >= 2) {
         ReliefManager relief;
         const string mode = argv[1];
@@ -87,7 +88,8 @@ int main(int argc, char* argv[]) {
     ResourceCenter depot(101, "Central Warehouse");
     depot.addStock(DEFAULT_SUPPLY_ID, 400);
     relief.addCenter(depot);
-    relief.addVehicle(Vehicle(1, 100, 101));         // starts on a graph node
+    relief.addVehicle(Vehicle(1, 100, 101)); 
+    relief.setTravelSpeed(10.0);          // starts on a graph node
 
     relief.addLocation(3);                           // zone 3 exists but has no roads
     relief.addRoad(101, 201, 4);

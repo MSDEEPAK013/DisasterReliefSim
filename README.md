@@ -53,6 +53,15 @@ cmake --build build
 
 With multi-config generators (Visual Studio, Xcode) the executable lands in a configuration subfolder, for example `build/Debug/disaster_relief.exe`.
 
+### Interactive console
+
+```bash
+./build/disaster_relief --interactive          # type commands
+./build/disaster_relief --script demo.txt      # replay a command file
+```
+
+Type `help` for the command list. Names use underscores for spaces. Zone, center and junction ids share one number space, so they must not overlap (suggested: zones 1-99, centers 101-199, junctions 201 and up). `demo` loads the three-zone map.
+
 ### Tests
 
 ```bash

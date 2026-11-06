@@ -23,6 +23,7 @@ private:
 
 public:
     void addLocation(int id);
+    bool hasLocation(int id) const;
 
     void addRoad(int from, int to, double cost);
 

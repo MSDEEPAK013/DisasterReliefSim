@@ -48,7 +48,9 @@ zone.unmetDemand = 50;
 zone.nodeId = 3;
 
 bfsManager.addZone(zone);
-bfsManager.addCenter(ResourceCenter(1, "Center A", 1));
+ResourceCenter centerA(1, "Center A", 1);
+centerA.addStock(DEFAULT_SUPPLY_ID, 100);   // an empty center is no longer listed as a route source
+bfsManager.addCenter(centerA);
 
 bfsManager.addRoad(1, 2, 4.0);
 bfsManager.addRoad(2, 3, 6.0);
@@ -134,6 +136,62 @@ assert(blockedOutput.str().find("Route:") == std::string::npos);
     assert(rejectedDuplicate);
     assert(registry.findResource(101)->name() == "Water");
 
+    // Vehicles with travel time: cargo arrives later, units on the road are not
+    // sent twice, and the vehicle is busy until it is back home.
+    {
+        ReliefManager two;
+        two.setTravelSpeed(10.0);                         // road cost 10 = one step each way
+        two.addZone({1, "Zone A", 5, 1000, 80});
+        ResourceCenter hub(101, "Hub");
+        hub.addStock(DEFAULT_SUPPLY_ID, 500);
+        two.addCenter(hub);
+        two.addVehicle(Vehicle(1, 50, 101));
+        two.addVehicle(Vehicle(2, 50, 101));
+        two.addRoad(101, 1, 10.0);
+
+        std::ostringstream quietTwo;
+        std::streambuf* keep = std::cout.rdbuf(quietTwo.rdbuf());
+
+        two.runStep();                                    // step 1: both vehicles leave (50 + 30)
+        assert(two.findZone(1)->unmetDemand == 80);       // nothing has arrived yet
+        assert(two.findCenter(101)->availableStock(DEFAULT_SUPPLY_ID) == 420);
+        assert(two.findVehicle(1)->isOnTrip() && two.findVehicle(2)->isOnTrip());
+
+        assert(two.runStep());                            // step 2: cargo arrives, vehicles drive home
+        assert(two.findZone(1)->unmetDemand == 0);
+        assert(two.findCenter(101)->availableStock(DEFAULT_SUPPLY_ID) == 420);   // no second dispatch
+
+        assert(!two.runStep());                           // step 3: back home, nothing left to do
+        assert(!two.findVehicle(1)->isOnTrip() && !two.findVehicle(2)->isOnTrip());
+
+        // One vehicle has to make two round trips for 80 units.
+        ReliefManager one;
+        one.setTravelSpeed(10.0);
+        one.addZone({1, "Zone A", 5, 1000, 80});
+        ResourceCenter hub2(101, "Hub");
+        hub2.addStock(DEFAULT_SUPPLY_ID, 500);
+        one.addCenter(hub2);
+        one.addVehicle(Vehicle(1, 50, 101));
+        one.addRoad(101, 1, 10.0);
+
+        one.runStep();                                    // step 1: leaves with 50
+        assert(one.findZone(1)->unmetDemand == 80);
+        one.runStep();                                    // step 2: 50 delivered, still driving home
+        assert(one.findZone(1)->unmetDemand == 30);
+        assert(one.findVehicle(1)->isOnTrip());
+        assert(one.findCenter(101)->availableStock(DEFAULT_SUPPLY_ID) == 450);   // busy: nothing new sent
+        one.runStep();                                    // step 3: back home, leaves with 30
+        assert(one.findCenter(101)->availableStock(DEFAULT_SUPPLY_ID) == 420);
+        one.runStep();                                    // step 4: last 30 delivered
+        assert(!one.hasUnmetDemand());
+
+        std::cout.rdbuf(keep);
+
+        // A negative speed is rejected.
+        bool badSpeed = false;
+        try { one.setTravelSpeed(-1.0); } catch (const std::invalid_argument&) { badSpeed = true; }
+        assert(badSpeed);
+    }
     std::cout << "All ReliefManager routing tests passed!\n";
     return 0;
 }

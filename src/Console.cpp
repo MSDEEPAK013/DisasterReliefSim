@@ -94,6 +94,9 @@ bool Console::execute(const string& command, istringstream& args) {
         if (relief.findZone(id) != nullptr) {
             throw invalid_argument("That id belongs to a zone. Zones and centers share map node numbers.");
         }
+        if (stock < 0) {                                             // ADD
+            throw invalid_argument("Stock cannot be negative.");     // ADD
+        } 
         ResourceCenter center(id, spaced(name));
         if (stock > 0) {
             center.addStock(DEFAULT_SUPPLY_ID, stock);
@@ -122,6 +125,10 @@ bool Console::execute(const string& command, istringstream& args) {
             cout << "Usage: vehicle <id> <capacity> <startNode>\n";
             return true;
         }
+        if (!relief.hasLocation(node)) {                                                       
+            throw invalid_argument("Node " + to_string(node) + " is not on the map. "           
+                "Add the center or junction (or a road to it) before placing a vehicle there."); 
+        }
         relief.addVehicle(Vehicle(id, capacity, node));
         vehicleIds.push_back(id);
         cout << "Added vehicle " << id << " (capacity " << capacity << ", at node " << node << ").\n";
@@ -136,6 +143,21 @@ bool Console::execute(const string& command, istringstream& args) {
         }
         relief.setVehicleAvailable(id, command == "online");
         cout << "Vehicle " << id << " is now " << command << ".\n";
+        return true;
+    }
+
+    if (command == "speed") {
+        double value;
+        if (!(args >> value)) {
+            cout << "Usage: speed <distance per step>   (0 = instant deliveries)\n";
+            return true;
+        }
+        relief.setTravelSpeed(value);
+        if (value == 0) {
+            cout << "Travel speed 0: deliveries are instant.\n";
+        } else {
+            cout << "Travel speed " << value << ": trips now take time.\n";
+        }
         return true;
     }
 
@@ -185,7 +207,11 @@ bool Console::execute(const string& command, istringstream& args) {
         string token;
         if (args >> token) {
             try {
-                count = stoi(token);
+                size_t used = 0;                                       
+                count = stoi(token, &used);
+                if (used != token.size()) {
+                    throw invalid_argument("trailing characters");
+                }
             } catch (const exception&) {
                 throw invalid_argument("Expected a number of steps.");
             }
@@ -253,10 +279,17 @@ void Console::printStatus() const {
     ids = vehicleIds;
     sort(ids.begin(), ids.end());
     for (int id : ids) {
-        const Vehicle* v = relief.findVehicle(id);
+                const Vehicle* v = relief.findVehicle(id);
         cout << "  " << v->id() << " | capacity " << v->capacity()
              << " | at node " << v->location()
-             << " | " << (v->isAvailable() ? "online" : "offline") << "\n";
+             << " | " << (v->isAvailable() ? "online" : "offline");
+        if (v->isOnTrip()) {
+            const Trip& t = v->trip();
+            cout << " | on trip with " << t.quantity << " units for zone " << t.zoneId
+                 << (t.delivered ? " (delivered, returning" : " (driving")
+                 << ", home in " << (t.returnAt - t.elapsed) << " step(s))";
+        }
+        cout << "\n";
     }
     if (ids.empty()) cout << "  (none)\n";
 }
@@ -268,6 +301,7 @@ void Console::printHelp() const {
          << "  restock <centerId> <amount>\n"
          << "  vehicle <id> <capacity> <startNode>\n"
          << "  offline <vehicleId>   |   online <vehicleId>\n"
+         << "  speed <n>   distance covered per step; 0 = instant deliveries (default)\n"
          << "  node <id>\n"
          << "  road <nodeA> <nodeB> <cost>\n"
          << "  block <nodeA> <nodeB>   |   unblock <nodeA> <nodeB>\n"
@@ -284,6 +318,7 @@ void Console::printHelp() const {
 
 void Console::loadDemo() {
     const char* lines[] = {
+        "speed 10",
         "zone 1 North_Sector 5 1200 500",
         "zone 2 River_District 4 2000 300",
         "zone 3 East_Village 3 800 700",

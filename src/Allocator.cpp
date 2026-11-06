@@ -84,23 +84,37 @@ AllocationPlan Allocator::plan(ZoneQueue zones,
             // same connected area as the zone; no other center would do better.
             int bestVehicle = -1;
             int bestCapacity = 0;
+            double bestPickup = numeric_limits<double>::infinity();
+            bool reachableButBusy = false; 
 
             for (int id : vehicleIds) {
                 const Vehicle& vehicle = vehicles.at(id);
-                if (!vehicle.isAvailable() || busyVehicles.count(id) > 0) {
+                if (!vehicle.isAvailable()) {
                     continue;
                 }
                 if (!graph.isReachable(vehicle.location(), bestCenter)) {
                     continue;
                 }
-                if (vehicle.capacity() > bestCapacity) {
+                if (vehicle.isOnTrip() || busyVehicles.count(id) > 0) {
+                    reachableButBusy = true;   // would work, but it is out driving or already booked
+                    continue;
+                }
+
+                // largest capacity wins; on equal capacity the one closer to the
+                // center; on equal distance the lower id (ids are ascending)
+                const double pickup = graph.shortestDistance(vehicle.location(), bestCenter);
+                if (vehicle.capacity() > bestCapacity ||
+                    (vehicle.capacity() == bestCapacity && pickup < bestPickup)) {
                     bestCapacity = vehicle.capacity();
+                    bestPickup = pickup;
                     bestVehicle = id;
                 }
             }
 
             if (bestVehicle < 0) {
-                reason = "no available vehicle can reach a center with supply";
+                reason = reachableButBusy
+                    ? "every vehicle that can reach a center is already used this step"
+                    : "no available vehicle can reach a center with supply";
                 break;
             }
 
